@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 
 
 import com.cst438.controller.StudentController;
-import com.cst438.domain.ScheduleDTO;
+import com.cst438.domain.StudentDTO;
 import com.cst438.domain.Student;
 import com.cst438.domain.StudentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,10 +60,11 @@ class JunitTestStudent {
 				.post("/student/add/{email}/{name}", TEST_STUDENT_EMAIL, TEST_STUDENT_NAME))
 				.andReturn().getResponse();
 				
-		Student student2 = fromJsonString(response.getContentAsString(), Student.class);
-		System.out.println(student2);
+		StudentDTO studentDTO = fromJsonString(response.getContentAsString(), StudentDTO.class);
+
+		System.out.println(studentDTO);
 		assertEquals(200, response.getStatus());
-		assertEquals(TEST_STUDENT_EMAIL, student2.getEmail());
+		assertEquals(TEST_STUDENT_EMAIL, studentDTO.email);
 		
 		verify(studentRepository).save(any(Student.class));
 

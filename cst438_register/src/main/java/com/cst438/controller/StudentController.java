@@ -5,13 +5,13 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import com.cst438.domain.StudentRepository;
+import com.cst438.domain.StudentDTO;
 import com.cst438.domain.Student;
 
 @RestController
@@ -26,7 +26,7 @@ public class StudentController {
 	//TODO: make sure only admins can do this 
 	@PostMapping("/student/add/{email}/{name}")
 	@Transactional
-	public Student addNewStudent(@PathVariable String email,  @PathVariable String name)
+	public StudentDTO addNewStudent(@PathVariable String email,  @PathVariable String name)
 	{
 		Student newStudent = studentRepository.findByEmail(email);
 		if(newStudent != null) {
@@ -36,10 +36,11 @@ public class StudentController {
 			newStudent = new Student();
 			newStudent.setName(name);
 			newStudent.setEmail(email);
-			
 			studentRepository.save(newStudent);
+
+			StudentDTO student = createStudentDTO(newStudent);
 			
-			return newStudent;
+			return student;
 		}
 	}
 	
@@ -50,7 +51,7 @@ public class StudentController {
 	 */
 	@PostMapping("/student/addhold/{email}")
 	@Transactional
-	public Student addHoldtoStudent(@PathVariable String email)
+	public StudentDTO addHoldtoStudent(@PathVariable String email)
 	{
 		Student student = studentRepository.findByEmail(email);		
 		if(student == null) {
@@ -60,7 +61,9 @@ public class StudentController {
 			student.setStatusCode(1);
 			student.setStatus("ON HOLD");
 			studentRepository.save(student);
-			return student;
+
+			StudentDTO studentDTO = createStudentDTO(student);
+			return studentDTO;
 		}
 	}
 	
@@ -71,7 +74,7 @@ public class StudentController {
 	 */
 	@PutMapping("/student/deletehold/{email}")
 	@Transactional
-	public Student deleteHold(@PathVariable String email) {
+	public StudentDTO deleteHold(@PathVariable String email) {
 		
 		Student student = studentRepository.findByEmail(email);
 		if(student == null) {
@@ -87,10 +90,24 @@ public class StudentController {
 			student.setStatusCode(0);
 			student.setStatus(null);
 			studentRepository.save(student);
-			return student;
+
+			StudentDTO studentDTO = createStudentDTO(student);
+			return studentDTO;
 		}
 	}
 
-}
 
+
+private StudentDTO createStudentDTO(Student student)
+{
+	StudentDTO studentDTO = new StudentDTO();
+	studentDTO.student_id = student.getStudent_id();
+	studentDTO.name = student.getName();
+	studentDTO.email =student.getEmail();
+	studentDTO.statusCode = student.getStatusCode();
+	studentDTO.status = student.getStatus();
+	
+	return studentDTO;
+}
+}
 
