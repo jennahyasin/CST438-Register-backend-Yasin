@@ -2,6 +2,7 @@ package com.cst438;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.sql.Date;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,6 +23,8 @@ import static org.mockito.Mockito.verify;
 
 import com.cst438.controller.StudentController;
 import com.cst438.domain.StudentDTO;
+import com.cst438.domain.Enrollment;
+import com.cst438.domain.ScheduleDTO;
 import com.cst438.domain.Student;
 import com.cst438.domain.StudentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,8 +35,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class JunitTestStudent {
 
 	static final String URL = "http://localhost:8080";
-	public static final String TEST_STUDENT_EMAIL = "123";
+	public static final String TEST_STUDENT_EMAIL = "test@csumb.edu";
 	public static final String TEST_STUDENT_NAME  = "test";
+	public static final String TEST_STUDENT_STATUS1 = "ON HOLD";
+	public static final int TEST_STUDENT_STATUS_CODE1 = 1;
+	public static final String TEST_STUDENT_STATUS0 = null;
+	public static final int TEST_STUDENT_STATUS_CODE0 = 0;
 	
 	@MockBean
 	StudentRepository studentRepository;
@@ -43,15 +50,15 @@ class JunitTestStudent {
 	private MockMvc mvc;
 	
 	@Test
-	void addNewStudent() throws Exception {
+	public void addNewStudent() throws Exception {
 		MockHttpServletResponse response;
 		
 		Student student = new Student();
 		student.setName(TEST_STUDENT_NAME);
-		student.setEmail(TEST_STUDENT_NAME);
-
+		student.setEmail(TEST_STUDENT_EMAIL);
 		
 		given(studentRepository.findByEmail(TEST_STUDENT_EMAIL)).willReturn(null);
+		
 		given(studentRepository.save(any(Student.class))).willReturn(student);
 		
 		
@@ -59,17 +66,88 @@ class JunitTestStudent {
 				MockMvcRequestBuilders
 				.post("/student/add/{email}/{name}", TEST_STUDENT_EMAIL, TEST_STUDENT_NAME))
 				.andReturn().getResponse();
-				
-		StudentDTO studentDTO = fromJsonString(response.getContentAsString(), StudentDTO.class);
-
-		System.out.println(studentDTO);
-		assertEquals(200, response.getStatus());
-		assertEquals(TEST_STUDENT_EMAIL, studentDTO.email);
 		
-		verify(studentRepository).save(any(Student.class));
-
-		//verify(studentRepository, times(1)).findByEmail(TEST_STUDENT_EMAIL);
+		assertEquals(200, response.getStatus());
+		
+		StudentDTO studentDTO = fromJsonString(response.getContentAsString(), StudentDTO.class);
+		boolean found = false;
+		if(studentDTO.email.equals( TEST_STUDENT_EMAIL)) {
+			found = true;
 		}
+
+		//assertEquals(student.getEmail(), studentDTO.email);
+		assertEquals(true, found, "Student already exists yet");
+		verify(studentRepository).save(any(Student.class));
+				// verify that repository find method was called.
+	    verify(studentRepository, times(1)).findByEmail(TEST_STUDENT_EMAIL);
+
+		System.out.println("Student added: " + studentDTO.email);
+
+	}
+	
+	@Test
+	public void addHoldtoStudent()  throws Exception {
+		MockHttpServletResponse response;
+		
+		Student student = new Student();
+		student.setEmail(TEST_STUDENT_EMAIL);
+		student.setName(TEST_STUDENT_NAME);
+		student.setStatus(TEST_STUDENT_STATUS1);
+		student.setStatusCode(TEST_STUDENT_STATUS_CODE1);
+		
+		given(studentRepository.findByEmail(TEST_STUDENT_EMAIL)).willReturn(student);
+		
+		given(studentRepository.save(any(Student.class))).willReturn(student);
+		
+		response = mvc.perform(
+				MockMvcRequestBuilders
+				.put("/student/addhold/{email}", TEST_STUDENT_EMAIL))
+				.andReturn().getResponse();
+		
+		assertEquals(200, response.getStatus());
+		
+		StudentDTO studentDTO = fromJsonString(response.getContentAsString(), StudentDTO.class);
+		boolean found = false;
+		if(studentDTO.email.equals(TEST_STUDENT_EMAIL)) {
+			found = true;
+		}
+		assertEquals(true, found, "Student not found");
+	    verify(studentRepository, times(1)).findByEmail(TEST_STUDENT_EMAIL);
+
+		System.out.println("Added hold to found user: " + studentDTO);
+	}
+	
+	@Test
+	public void deleteHold() throws Exception{
+		MockHttpServletResponse response;
+		
+		Student student = new Student();
+		student.setEmail(TEST_STUDENT_EMAIL);
+		student.setName(TEST_STUDENT_NAME);
+		student.setStatus(TEST_STUDENT_STATUS0);
+		student.setStatusCode(TEST_STUDENT_STATUS_CODE0);
+		
+		given(studentRepository.findByEmail(TEST_STUDENT_EMAIL)).willReturn(student);
+		
+		given(studentRepository.save(any(Student.class))).willReturn(student);
+		
+		response = mvc.perform(
+				MockMvcRequestBuilders
+				.put("/student/deletehold/{email}", TEST_STUDENT_EMAIL))
+				.andReturn().getResponse();
+		
+		assertEquals(200, response.getStatus());
+		StudentDTO studentDTO = fromJsonString(response.getContentAsString(), StudentDTO.class);
+		boolean found = false;
+		if(studentDTO.email.equals(TEST_STUDENT_EMAIL)) {
+			found = true;
+		}
+		assertEquals(true, found, "Student not found");
+	    verify(studentRepository, times(1)).findByEmail(TEST_STUDENT_EMAIL);
+
+		System.out.println("Removed hold from found user: " + studentDTO);
+	}
+		
 
 	private static <T> T  fromJsonString(String str, Class<T> valueType ) {
 		try {
@@ -78,5 +156,7 @@ class JunitTestStudent {
 			throw new RuntimeException(e);
 		}
 	}
+  
+
 
 }

@@ -49,7 +49,7 @@ public class StudentController {
 	 * Status Codes: 0 - No Hold
 	 * 				 1 - On Hold
 	 */
-	@PostMapping("/student/addhold/{email}")
+	@PutMapping("/student/addhold/{email}")
 	@Transactional
 	public StudentDTO addHoldtoStudent(@PathVariable String email)
 	{
@@ -79,12 +79,6 @@ public class StudentController {
 		Student student = studentRepository.findByEmail(email);
 		if(student == null) {
 			throw new ResponseStatusException( HttpStatus.BAD_REQUEST,"Student is not registered: " + email);
-		}
-		String currentStatus = student.getStatus();
-		
-		if(currentStatus == null)
-		{
-			throw new ResponseStatusException( HttpStatus.BAD_REQUEST, "Student not on hold: " + email);
 		}
 		else {
 			student.setStatusCode(0);
