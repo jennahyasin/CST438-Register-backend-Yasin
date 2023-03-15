@@ -181,7 +181,7 @@ class JunitTestStudent {
 		System.out.println("Removed hold from found user: " + studentDTO);
 	}
 		
-	//helper function to grapb the json response data
+	//helper function to grap the json response data
 	private static <T> T  fromJsonString(String str, Class<T> valueType ) {
 		try {
 			return new ObjectMapper().readValue(str, valueType);
