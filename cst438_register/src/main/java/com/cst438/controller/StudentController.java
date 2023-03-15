@@ -36,7 +36,7 @@ public class StudentController {
 			newStudent = new Student();
 			newStudent.setName(name);
 			newStudent.setEmail(email);
-			studentRepository.save(newStudent);
+			newStudent = studentRepository.save(newStudent);
 
 			StudentDTO student = createStudentDTO(newStudent);
 			
