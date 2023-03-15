@@ -73,7 +73,7 @@ public class ScheduleController {
 		
 		Student student = studentRepository.findByEmail(student_email);
 		Course course  = courseRepository.findById(courseDTO.course_id).orElse(null);
-		
+		 
 		// student.status
 		// = 0  ok to register
 		// != 0 hold on registration.  student.status may have reason for hold.
