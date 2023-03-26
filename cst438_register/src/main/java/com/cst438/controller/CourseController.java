@@ -26,11 +26,13 @@ public class CourseController {
 	@Transactional
 	public void updateCourseGrades( @RequestBody CourseDTOG courseDTO, @PathVariable("course_id") int course_id) {
 		
-		//TODO  complete this method in homework 4
 		for(CourseDTOG.GradeDTO g: courseDTO.grades)
 		{
+			//finds the enrollment by the student's email and course id
 			Enrollment e = enrollmentRepository.findByEmailAndCourseId(g.student_email, course_id);
+			//updates the course grade
 			e.setCourseGrade(g.grade);
+			//saves the new course grade in to the enrollment repository
 			enrollmentRepository.save(e);
 		}
 		
